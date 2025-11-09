@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="el">
 <head>
@@ -306,29 +307,29 @@ document.getElementById("submitBookingBtn").addEventListener("click", async () =
   const guest = document.getElementById("guestInput").value.trim();
   const checkin = document.getElementById("checkinInput").value;
   const checkout = document.getElementById("checkoutInput").value;
+
   if (!room || !guest || !checkin || !checkout) {
     alert("Συμπλήρωσε όλα τα πεδία.");
     return;
   }
+
   const newBooking = { room, guest, checkin, checkout };
+
   try {
-    const res = await fetch(sheetCsvUrl, {
+    await fetch(sheetCsvUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newBooking)
+      body: JSON.stringify(newBooking),
+      mode: "no-cors"
     });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`HTTP ${res.status}: ${text}`);
-    }
-    const result = await res.text();
-    alert("Η κράτηση προστέθηκε: " + result);
-    const reservations = await loadReservations();
-    renderCalendar(reservations);
+
+    alert("Η κράτηση στάλθηκε. Έλεγξε το Google Sheet για επιβεβαίωση.");
+
     document.getElementById("roomInput").value = "";
     document.getElementById("guestInput").value = "";
     document.getElementById("checkinInput").value = "";
     document.getElementById("checkoutInput").value = "";
+
   } catch (e) {
     alert("Σφάλμα κατά την προσθήκη κράτησης: " + e.message);
     console.error("Λεπτομέρειες σφάλματος:", e);
