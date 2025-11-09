@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<title>Skyros – Ημερολόγιο Κρατήσεων</title>
+<style>
+  body {
+    font-family: sans-serif;
+    background: #E1EBE4;
+    margin: 0;
+    padding: 30px 10px;
+    color: #333;
+  }
+  h2 {
+    text-align: center;
+    color: #415361;
+  }
+  .controls {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  select, button {
+    padding: 8px 12px;
+    font-size: 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin: 0 6px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: #fff;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    text-align: center;
+    padding: 8px;
+    min-width: 70px;
+    width: 70px;
+    height: 60px;
+  }
+  th.room-col {
+    background: #B0BBD1;
+    color: #fff;
+    font-weight: 600;
+    width: 220px;
+  }
+  td.room-col {
+    width: 220px;
+    background: #f9f9f9;
+  }
+  td.booked {
+    background: #e0f2e9;
+    color: #333;
+    font-weight: 500;
+    position: relative;
+  }
+  td.today {
+    border: 2px solid #333;
+  }
+  .loading {
+    text-align: center;
+    margin-top: 15px;
+    color: #666;
+  }
+  .tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  td.booked:hover .tooltip {
+    display: block;
+  }
+  .cell-split {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 6px;
+    margin: 2px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #fff;
+    font-weight: 600;
+  }
+  .badge-in { background-color: #4CAF50; }
+  .badge-out { background-color: #F44336; }
+  .badge-stay { background-color: #2196F3; }
+  th.weekend {
+    background-color: #DFD1E0;
+    color: #FFFFFF;
+  }
+  .add-booking-form input, .add-booking-form button {
+    margin: 6px;
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+  @media (max-width: 768px) {
+    table, thead, tbody, th, td, tr {
+      display: block;
+    }
+    thead {
+      display: none;
+    }
+    tr {
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    td {
+      text-align: right;
+      padding-left: 50%;
+      position: relative;
+      height: auto;
+      min-height: 40px;
+    }
+    td::before {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 45%;
+      white-space: nowrap;
+      font-weight: bold;
+      text-align: left;
+    }
+    td.room-col {
+      background: #f0f0f0;
+      font-weight: bold;
+      text-align: left;
+      padding-left: 10px;
+    }
+    .controls, .add-booking-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .controls select, .controls button,
+    .add-booking-form input, .add-booking-form button {
+      width: 90%;
+      margin-bottom: 10px;
+    }
+  }
+</style>
+</head>
+<body>
+<h2>Skyros – Ημερολόγιο Κρατήσεων</h2>
+<div class="controls">
+  <label>Μήνας:</label>
+  <select id="month">
+    <option value="0">Ιανουάριος</option>
+    <option value="1">Φεβρουάριος</option>
+    <option value="2">Μάρτιος</option>
+    <option value="3">Απρίλιος</option>
+    <option value="4">Μάιος</option>
+    <option value="5">Ιούνιος</option>
+    <option value="6">Ιούλιος</option>
+    <option value="7">Αύγουστος</option>
+    <option value="8">Σεπτέμβριος</option>
+    <option value="9" selected>Οκτώβριος</option>
+    <option value="10">Νοέμβριος</option>
+    <option value="11">Δεκέμβριος</option>
+  </select>
+  <label>Έτος:</label>
+  <select id="year"></select>
+  <button id="loadBtn">Φόρτωσε Ημερολόγιο</button>
+</div>
+<div class="add-booking-form" style="text-align:center; margin-top: 20px;">
+  <h3>Προσθήκη Νέας Κράτησης</h3>
+  <select id="roomInput">
+    <option value="">Επιλέξτε Δωμάτιο</option>
+    <option value="GAIA">FILIA-GAIA (3)</option>
+    <option value="AEGEUS">FILIA-AEGEUS (5)</option>
+    <option value="AEOLUS">FILIA-AEOLUS (5)</option>
+    <option value="CalMa-1">CalMa-1 (4)</option>
+    <option value="CalMa-2">CalMa-2 (4)</option>
+    <option value="CalMa-3">CalMa-3 (4)</option>
+    <option value="CalMa-4">CalMa-4 (4)</option>
+  </select>
+  <input type="text" id="guestInput" placeholder="Όνομα Πελάτη" />
+  <input type="date" id="checkinInput" />
+  <input type="date" id="checkoutInput" />
+  <button id="submitBookingBtn">Καταχώρηση</button>
+</div>
+<div id="calendar-container"></div>
+<div class="loading" id="status">Πίεσε "Φόρτωσε Ημερολόγιο" για να εμφανιστούν οι κρατήσεις.</div>
+<script>
+const ROOMS = [
+  { name: "FILIA-GAIA (3)" },
+  { name: "FILIA-AEGEUS (5)" },
+  { name: "FILIA-AEOLUS (5)" },
+  { name: "CalMa-1 (4)" },
+  { name: "CalMa-2 (4)" },
+  { name: "CalMa-3 (4)" },
+  { name: "CalMa-4 (4)" }
+];
+const sheetCsvUrl = "https://script.google.com/macros/s/AKfycbw_5oP2JbI3CUTBHvBxtzHB7ymuNbXVu_RULzd2Rd5hmuoScvXGR55IMr8vQM9o5egZ/exec";
+function toISO(d) {
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
+}
+function populateYears() {
+  const yearSel = document.getElementById("year");
+  const currentYear = new Date().getFullYear();
+  for (let y = 2023; y <= 2040; y++) {
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    if (y === currentYear) opt.selected = true;
+    yearSel.appendChild(opt);
+  }
+}
+async function loadReservations() {
+  try {
+    document.getElementById("status").innerText = "Φόρτωση δεδομένων...";
+    const res = await fetch(sheetCsvUrl);
+    if (!res.ok) throw new Error("Αδυναμία φόρτωσης JSON");
+    const reservations = await res.json();
+    document.getElementById("status").innerText = "Έτοιμο.";
+    return reservations;
+  } catch (e) {
+    document.getElementById("status").innerText = "Σφάλμα φόρτωσης δεδομένων";
+    console.error(e);
+    return [];
+  }
+}
+function renderCalendar(reservations) {
+  const monthSel = document.getElementById("month");
+  const yearSel = document.getElementById("year");
+  const container = document.getElementById("calendar-container");
+  const year = parseInt(yearSel.value);
+  const month = parseInt(monthSel.value);
+  const startDate = new Date(year, month, 1);
+  const daysToShow = 45;
+  let html = "<table><thead><tr><th class='room-col'>Δωμάτιο</th>";
+  for (let i=0; i<daysToShow; i++) {
+    const d = new Date(startDate);
+    d.setDate(startDate.getDate() + i);
+    const dayNames = ['Κυρ', 'Δευ', 'Τρί', 'Τετ', 'Πέμ', 'Παρ', 'Σάβ'];
+    const dayLabel = `${dayNames[d.getDay()]} ${d.getDate()}`;
+    let thClass = '';
+    if (toISO(d) === toISO(new Date())) {
+      thClass = 'today';
+    } else if (d.getDay() === 0 || d.getDay() === 6) {
+      thClass = 'weekend';
+    }
+    html += `<th class="${thClass}">${dayLabel}</th>`;
+  }
+  html += "</tr></thead><tbody>";
+  for (let room of ROOMS) {
+    html += `<tr><td class='room-col'>${room.name}</td>`;
+    for (let i=0; i<daysToShow; i++) {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      const iso = toISO(d);
+      const bookings = reservations.filter(b => {
+        if (!b.room || !b.checkin || !b.checkout) return false;
+        return b.room.toUpperCase().includes(room.name.split("-")[1]?.trim().toUpperCase());
+      });
+      const cellContent = [];
+      for (let b of bookings) {
+        if (iso === b.checkin) cellContent.push(`<span class="badge badge-in">In: ${b.guest}</span>`);
+        if (iso === b.checkout) cellContent.push(`<span class="badge badge-out">Out: ${b.guest}</span>`);
+        if (iso > b.checkin && iso < b.checkout) cellContent.push(`<span class="badge badge-stay">${b.guest}</span>`);
+      }
+      if (cellContent.length > 0) {
+        html += `<td class="booked"><div class="cell-split">${cellContent.join('')}<div class="tooltip">${cellContent.join('<br>')}</div></div></td>`;
+      } else {
+        html += `<td></td>`;
+      }
+    }
+    html += "</tr>";
+  }
+  html += "</tbody></table>";
+  container.innerHTML = html;
+}
+document.getElementById("loadBtn").addEventListener("click", async () => {
+  const reservations = await loadReservations();
+  renderCalendar(reservations);
+});
+document.getElementById("month").addEventListener("change", async () => {
+  const reservations = await loadReservations();
+  renderCalendar(reservations);
+});
+document.getElementById("year").addEventListener("change", async () => {
+  const reservations = await loadReservations();
+  renderCalendar(reservations);
+});
+document.getElementById("submitBookingBtn").addEventListener("click", async () => {
+  const room = document.getElementById("roomInput").value;
+  const guest = document.getElementById("guestInput").value.trim();
+  const checkin = document.getElementById("checkinInput").value;
+  const checkout = document.getElementById("checkoutInput").value;
+  if (!room || !guest || !checkin || !checkout) {
+    alert("Συμπλήρωσε όλα τα πεδία.");
+    return;
+  }
+  const newBooking = { room, guest, checkin, checkout };
+  try {
+    const res = await fetch(sheetCsvUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newBooking)
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text}`);
+    }
+    const result = await res.text();
+    alert("Η κράτηση προστέθηκε: " + result);
+    const reservations = await loadReservations();
+    renderCalendar(reservations);
+    document.getElementById("roomInput").value = "";
+    document.getElementById("guestInput").value = "";
+    document.getElementById("checkinInput").value = "";
+    document.getElementById("checkoutInput").value = "";
+  } catch (e) {
+    alert("Σφάλμα κατά την προσθήκη κράτησης: " + e.message);
+    console.error("Λεπτομέρειες σφάλματος:", e);
+  }
+});
+populateYears();
+</script>
+</body>
+</html>
