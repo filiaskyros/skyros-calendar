@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="el">
 <head>
@@ -184,20 +183,7 @@
 </div>
 <div class="add-booking-form" style="text-align:center; margin-top: 20px;">
   <h3>Προσθήκη Νέας Κράτησης</h3>
-  <select id="roomInput">
-    <option value="">Επιλέξτε Δωμάτιο</option>
-    <option value="GAIA">FILIA-GAIA (3)</option>
-    <option value="AEGEUS">FILIA-AEGEUS (5)</option>
-    <option value="AEOLUS">FILIA-AEOLUS (5)</option>
-    <option value="CalMa-1">CalMa-1 (4)</option>
-    <option value="CalMa-2">CalMa-2 (4)</option>
-    <option value="CalMa-3">CalMa-3 (4)</option>
-    <option value="CalMa-4">CalMa-4 (4)</option>
-  </select>
-  <input type="text" id="guestInput" placeholder="Όνομα Πελάτη" />
-  <input type="date" id="checkinInput" />
-  <input type="date" id="checkoutInput" />
-  <button id="submitBookingBtn">Καταχώρηση</button>
+  <button id="submitBookingBtn" style="background:#4CAF50;color:#fff;">Άνοιξε Φόρμα Google</button>
 </div>
 <div id="calendar-container"></div>
 <div class="loading" id="status">Πίεσε "Φόρτωσε Ημερολόγιο" για να εμφανιστούν οι κρατήσεις.</div>
@@ -302,40 +288,9 @@ document.getElementById("year").addEventListener("change", async () => {
   const reservations = await loadReservations();
   renderCalendar(reservations);
 });
-document.getElementById("submitBookingBtn").addEventListener("click", async () => {
-  const room = document.getElementById("roomInput").value;
-  const guest = document.getElementById("guestInput").value.trim();
-  const checkin = document.getElementById("checkinInput").value;
-  const checkout = document.getElementById("checkoutInput").value;
-
-  if (!room || !guest || !checkin || !checkout) {
-    alert("Συμπλήρωσε όλα τα πεδία.");
-    return;
-  }
-
-  const newBooking = { room, guest, checkin, checkout };
-
-  try {
-    await fetch(sheetCsvUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newBooking),
-      mode: "no-cors"
-    });
-
-    alert("Η κράτηση στάλθηκε. Έλεγξε το Google Sheet για επιβεβαίωση.");
-
-    document.getElementById("roomInput").value = "";
-    document.getElementById("guestInput").value = "";
-    document.getElementById("checkinInput").value = "";
-    document.getElementById("checkoutInput").value = "";
-
-  } catch (e) {
-    alert("Σφάλμα κατά την προσθήκη κράτησης: " + e.message);
-    console.error("Λεπτομέρειες σφάλματος:", e);
-  }
+document.getElementById("submitBookingBtn").addEventListener("click", () => {
+  window.open("https://docs.google.com/forms/d/e/1FAIpQLSd9xACQbyZO_jJqgKMe50OKuvz-2VdC13qPgpcz21jtkogZQA/viewform", "_blank");
 });
 populateYears();
 </script>
 </body>
-</html>
